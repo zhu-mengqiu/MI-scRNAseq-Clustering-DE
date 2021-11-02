@@ -1,5 +1,4 @@
 setwd('/CCAS/home/mzhu32/Pollen')
-# setwd('~/SingleCell/Pollen')
 
 library(ROCR)
 library(aricode)
@@ -19,11 +18,6 @@ ncluster <- length(unique(true.label))
 preprocess <- function(m){
   m <- sweep(m, 2, colSums(m), '/') * 1e6
   m <- log10(m+1)
-  
-  # m_pc <- prcomp(t(m))
-  # m <- t(m_pc$x[,1:30])
-  # m <- t(scale(t(m)))
-  
   return(m)
 }
 
@@ -96,9 +90,6 @@ for (i in 1:nimpute){
 }
 
 SI <- do.call(rbind, SI)
-# SI.Quantile <- apply(SI, 2, quantile)
-# SI.Quartile <- SI.Quantile[c(2,3,4),]
-# rownames(SI.Quartile) <- c('Q1','Med','Q3')
 
 #----------Consensus Clustering Louvain----------
 method <- 'median'
