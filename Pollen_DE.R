@@ -2,7 +2,6 @@
 
 # names of imputed datasets set as Pollen_scIGANs_impute_nolabel_n.txt
 # n = 1,2,3....
-setwd('/CCAS/home/mzhu32/Pollen')
 
 # set seed for reproducible results
 set.seed(200)

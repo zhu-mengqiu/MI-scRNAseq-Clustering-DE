@@ -1,5 +1,13 @@
-create_de_plot <- function(ds_list, name, pow, nimpute){
-  p.im = ds_list[[name]]
+# set working directory to the folder where output data from Pollen_Clust.R 
+# is stored
+
+# name of output data is Pollen_n_KW_P.RDS
+# n = number of imputations
+
+#----------FDR Plot----------
+# define a function to create FDR plot
+create_de_plot <- function(ds, name, pow, nimpute){
+  p.im = ds
   p.mi <- apply(p.im, 1, median)
   
   p.im.adj <- apply(p.im, 2, function(c) p.adjust(c, method = 'BH'))
@@ -82,19 +90,23 @@ create_de_plot <- function(ds_list, name, pow, nimpute){
   dev.off()
 }
 
-path.pol <- '~/SingleCell/Pollen/Pollen_'
-path.kol <- '~/SingleCell/Kolo/Kolo_'
-path.dar <- '~/SingleCell/Darmanis/Darmanis_MI/Darmanis_'
-
 nimpute <- 100
-p.im.pol <- readRDS(paste0(path.pol, as.character(nimpute), '_kw_im_p.RDS'))
-p.im.kol <- readRDS(paste0(path.kol, as.character(nimpute), '_kw_im_p.RDS'))
-p.im.dar <- readRDS(paste0(path.dar, as.character(nimpute), '_kw_im_p.RDS'))
+p.im.pol <- readRDS(paste0('Pollen_',as.character(nimpute), '_KW_P.RDS'))
 
-ds_list <- list('Pollen' = p.im.pol, 
-                'Kolodziejczyk' = p.im.kol, 
-                'Darmanis' = p.im.dar)
+create_de_plot(p.im.pol, 'Pollen', 1/6, nimpute)
 
-create_de_plot(ds_list, 'Pollen', 1/6, nimpute)
-create_de_plot(ds_list, 'Kolodziejczyk', 1/4, nimpute)
-create_de_plot(ds_list, 'Darmanis', 1/3, nimpute)
+#----------MI Rank----------
+# define a function to compute rank of MI results
+compute_mi_rank <- function(p.im, p.mi, alpha){
+  p.im.adj <- apply(p.im, 2, function(c) p.adjust(c, method = 'BH'))
+  p.mi.adj <- p.adjust(p.mi, method = 'BH')
+  rej.im <- apply(p.im.adj, 2, function(c) sum(c <= alpha))
+  rej.mi <- sum(p.mi.adj <= alpha)
+  rank <- sum(rej.mi < rej.im) + 1
+  return (rank)
+}
+
+p.mi.pol <- apply(p.im.pol, 1, median)
+print(compute_mi_rank(p.im.pol, p.mi.pol, 0.01))
+print(compute_mi_rank(p.im.pol, p.mi.pol, 0.05))
+print(compute_mi_rank(p.im.pol, p.mi.pol, 0.1))
