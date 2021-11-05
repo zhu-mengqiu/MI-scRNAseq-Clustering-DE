@@ -1,19 +1,27 @@
+# set working directory to the folder where imputed datasets are stored
+
+# names of imputed datasets are Pollen_scIGANs_impute_nolabel_n.txt
+# n = 1,2,3....
 setwd('/CCAS/home/mzhu32/Pollen')
 
+# load packages
 library(ROCR)
 library(aricode)
 library(scran)
 library(igraph)
 
+# set seed for reproducible results
 set.seed(200)
+
+# set number of imputations for multiple imputation-based clustering
 nimpute <- 100
 
-# true label
+# cell type labels assigned by authors
 true.label <- read.table('Pollen_label.txt')$V1
 ncluster <- length(unique(true.label))
 
 # define a function to preprocess data
-# normalization: divide each cell by sum of counts and multiply by 10K
+# normalization: divide each cell by sum of counts and multiply by one million
 # log transformation: take log of (count + 1)
 preprocess <- function(m){
   m <- sweep(m, 2, colSums(m), '/') * 1e6
@@ -71,11 +79,9 @@ for (i in 1:nimpute){
 }
 
 # ----------Individual Clustering K-Means----------
-nrun <- 1
-
 clusts <- vector(mode = 'list', length = nimpute)
 for (i in 1:nimpute){
-  label <- kmeans(t(data.im[[i]]), centers = ncluster, nstart = nrun)$cluster
+  label <- kmeans(t(data.im[[i]]), centers = ncluster)$cluster
   clusts[[i]] <- unlist(label)
 }
 clusts <- do.call(cbind, clusts)
@@ -108,5 +114,4 @@ MI <- unlist(c(perf.clust, perf.class))
 #----------Output----------
 Perf <- rbind(SI, MI)
 saveRDS(Perf, file = paste0('Pollen_', as.character(nimpute),
-                            '_noScale_KMeans_', as.character(nrun),
-                            '_Louvain_', method,'.RDS'))
+                            '_KMeans_Louvain.RDS'))
